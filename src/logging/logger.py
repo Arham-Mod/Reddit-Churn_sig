@@ -10,7 +10,10 @@ os.makedirs(logs_path, exist_ok=True)
 #makes new directory if not exists
 
 logging.basicConfig(
-    filename=os.path.join(logs_path, LOG_FILE),  #creates log file in logs directory
-    format='[%(asctime)s: %(levelname)s: %(name)s]: %(message)s', #log format
     level=logging.INFO, #sets logging level to INFO(there are multiple levels ranging from 0-10-20---50)
+    format='[%(asctime)s: %(levelname)s: %(name)s]: %(message)s', #log format
+    handlers=[
+        logging.FileHandler(os.path.join(logs_path, LOG_FILE)), #file handler to write logs to file
+        logging.StreamHandler()  #stream handler to output logs to console
+    ]
 )
