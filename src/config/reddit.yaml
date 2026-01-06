@@ -1,0 +1,23 @@
+product:
+  name: "Spotify"
+  description: "Music streaming platform"
+
+reddit:
+  subreddits:
+    - "spotify"
+    - "truespotify"
+
+  keywords:
+    - "cancel"
+    - "subscription"
+    - "price increase"
+    - "switching"
+    - "leaving"
+    - "bug"
+    - "support"
+
+  fetch:
+    post_limit: 50
+    comment_limit: 200
+    sort: "new"      # new | hot | top
+    time_filter: "month"   # day | week | month | year | all
