@@ -3,10 +3,6 @@ product:
   description: "Music streaming platform"
 
 reddit:
-  subreddits:
-    - "spotify"
-    - "truespotify"
-
   keywords:
     - "cancel"
     - "subscription"
@@ -15,6 +11,11 @@ reddit:
     - "leaving"
     - "bug"
     - "support"
+  
+  subreddits:
+    - "spotify"
+    - "truespotify"
+
 
   fetch:
     post_limit: 50

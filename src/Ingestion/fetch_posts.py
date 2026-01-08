@@ -1,11 +1,10 @@
-def fetch_posts(reddit, subreddits, post_limit):
+def fetch_posts(reddit, subreddits, keywords, post_limit):
     all_posts = []
 
     for subreddit in subreddits:
-        subreddit_obj = reddit.subreddit(subreddits)
+        subreddit_obj = reddit.subreddit(subreddit)
 
-
-    for keyword in subreddits:
+    for keyword in keywords:
         posts = subreddit_obj.search(query = keyword, limit = post_limit)
 
         for post in posts:
