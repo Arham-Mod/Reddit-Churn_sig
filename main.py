@@ -2,6 +2,7 @@ from src.logging import logger
 from src.config.load_config import load_yaml_config
 from src.ingestion.reddit_client import create_reddit_client
 from src.ingestion.fetch_posts import fetch_posts
+from src.data.save_raw import save_raw_posts
 
 def main():
     try:
@@ -35,7 +36,15 @@ def main():
     if posts:
         print("Sample post title:", posts[0]["title"])
 
-    
+    # Save raw posts
+    try:
+        file_path = save_raw_posts(posts=posts)
+        logger.logging.info(f"Raw posts saved to: {file_path}")
+
+    except Exception as e:
+        logger.logging.exception("Failed to save raw posts")
+        raise
+
 if __name__ == "__main__":
     logger.logging.info("Starting the Reddit Churn Prediction Application")
     main()
