@@ -1,37 +1,28 @@
 import re
 "regex library for text cleaning"
 
+import re
+
 def clean_text(text: str) -> str:
-    """Cleans the input text by removing URLs, special characters, and extra whitespace.
-    """
-    text = text.lower()
-    text = re.sub(r"http\S+", "", text)
-    """
-    removes urls and replaces with empty string
-    uses regex pattern http\S+ to match urls starting with http or https
-    """
+    if not isinstance(text, str):
+        return ""
 
-    text = re.sub(r"\S+", " ", text)
-    """
-    removes special characters and replaces with empty string
-    uses regex pattern \S+ to match any non-whitespace character
-    """
+    # Normalize whitespace
+    text = re.sub(r"\s+", " ", text)
 
-    return text.strip()
-    """
-    removes leading and trailing whitespace
-    """
+    # Remove URLs only (LLMs don't need them)
+    text = re.sub(r"http\S+|www\S+", "", text)
 
-def is_valid_text(text: str, min_words: int = 5) -> bool:
-    """Checks if the cleaned text meets the minimum word count requirement.
-    """
+    # Strip leading/trailing spaces
+    text = text.strip()
+
+    return text.lower()
+
+def is_valid_text(text: str, min_words: int = 15) -> bool:
     if not text:
         return False
-    
-    if text in {"[deleted]", "[removed]"}:
+
+    if text.strip() in {"[deleted]", "[removed]"}:
         return False
-    
-    if len(text.split()) < min_words:
-        return False    
-    
-    return True
+
+    return len(text.split()) >= min_words
