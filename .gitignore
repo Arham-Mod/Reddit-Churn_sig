@@ -209,3 +209,4 @@ __marimo__/
 
 #environments
 .env
+data/raw/
