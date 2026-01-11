@@ -1,8 +1,6 @@
 import re
 "regex library for text cleaning"
 
-import re
-
 def clean_text(text: str) -> str:
     if not isinstance(text, str):
         return ""
@@ -13,7 +11,7 @@ def clean_text(text: str) -> str:
     # Remove URLs only (LLMs don't need them)
     text = re.sub(r"http\S+|www\S+", "", text)
 
-    # Strip leading/trailing spaces
+    # Strip removes spaces in the beginning and end
     text = text.strip()
 
     return text.lower()

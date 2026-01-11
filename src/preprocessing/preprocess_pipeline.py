@@ -28,7 +28,7 @@ def preprocess_raw_data(
     posts_path: str,
     product_name: str,
     output_path: str = "data/processed/clean_chunks.json"
-) -> list:
+    ) -> list:
 
     posts = load_json(posts_path)
     processed_chunks = []
