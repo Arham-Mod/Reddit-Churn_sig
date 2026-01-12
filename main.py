@@ -1,9 +1,9 @@
-from src.logging import logger
-from src.config.load_config import load_yaml_config
+from utils.logging import logger
+from utils.config.load_config import load_yaml_config
 from src.ingestion.reddit_client import create_reddit_client
 from src.ingestion.fetch_posts import fetch_posts
-from src.data.save_raw import save_raw_posts
-from src.preprocessing.preprocess_pipeline import preprocess_raw_data
+from src.data_processing import save_raw_posts
+from src.data_processing.preprocessing.preprocess_pipeline import preprocess_raw_data
 
 
 def main():
@@ -26,11 +26,14 @@ def main():
 
     # 3. Fetch posts
     posts = fetch_posts(
-        reddit=reddit_client,
-        subreddits=config["reddit"]["subreddits"],
-        post_limit=config["reddit"]["fetch"]["post_limit"],
-        keywords=config["reddit"]["keywords"]
-    )
+    reddit=reddit_client,
+    subreddits=config["reddit"]["subreddits"],
+    keywords=config["reddit"]["keywords"],
+    post_limit=config["reddit"]["fetch"]["post_limit"],
+    sort=config["reddit"]["fetch"]["sort"],
+    time_filter=config["reddit"]["fetch"]["time_filter"]
+)
+
 
     print(f"Fetched {len(posts)} posts")
     logger.logging.info("Fetched %d posts", len(posts))
