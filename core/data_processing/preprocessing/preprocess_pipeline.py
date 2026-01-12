@@ -4,8 +4,8 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.data_processing.preprocessing.chunk_text import chunk_text
-from src.data_processing.preprocessing.clean_text import clean_text, is_valid_text
+from core.data_processing.preprocessing.chunk_text import chunk_text
+from core.data_processing.preprocessing.clean_text import clean_text, is_valid_text
 
 
 def get_latest_raw_posts_file(raw_dir="data/raw") -> str:

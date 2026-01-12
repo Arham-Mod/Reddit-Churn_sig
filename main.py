@@ -1,10 +1,11 @@
 import logging
 from utils.logging.logger import setup_logging
 from utils.config.load_config import load_yaml_config
-from src.ingestion.reddit_client import create_reddit_client
-from src.ingestion.fetch_posts import fetch_posts
-from src.data_processing.save_raw import save_raw_posts
-from src.data_processing.preprocessing.preprocess_pipeline import preprocess_raw_data
+from core.ingestion.reddit_client import create_reddit_client
+from core.ingestion.fetch_posts import fetch_posts
+from core.data_processing.save_raw import save_raw_posts
+from core.data_processing.preprocessing.preprocess_pipeline import preprocess_raw_data
+from core.ingestion.fetch_comments import fetch_comments
 
 
 def main():
@@ -36,6 +37,20 @@ def main():
     if posts:
         print("Sample post title:", posts[0]["title"])
     '''
+
+    # 4. Fetch Comments
+    post_ids = [p["post_id"] for p in posts]
+
+    comments = fetch_comments(
+    reddit=reddit_client,
+    post_ids=post_ids,
+    comment_limit=config["reddit"]["fetch"]["comment_limit"],
+    max_depth=config["reddit"]["fetch"]["max_comment_depth"],
+    )
+
+    text_units = posts + comments
+
+
     # 4. Save raw posts
     try:
         raw_file_path = save_raw_posts(posts=posts)
