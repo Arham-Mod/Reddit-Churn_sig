@@ -1,4 +1,5 @@
 import json 
+import logging
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -38,30 +39,35 @@ def preprocess_raw_data(
     skipped_posts = 0
     skipped_chunks = 0
 
-    for post in posts:
-        title = post.get("title", "")
-        text = post.get("text", "")
+    try:
+        for post in posts:
+            title = post.get("title", "")
+            text = post.get("text", "")
 
-        # Ensure both are strings
-        if not isinstance(title, str):
-            title = ""
-        if not isinstance(text, str):
-            text = ""
+            # Ensure both are strings
+            if not isinstance(title, str):
+                title = ""
+            if not isinstance(text, str):
+                text = ""
 
-        raw_text = f"{title} {text}".strip()
+            raw_text = f"{title} {text}".strip()
 
 
-        cleaned_text = clean_text(raw_text)
+            cleaned_text = clean_text(raw_text)
 
-        # If text is completely empty, skip early
-        if not cleaned_text:
-            skipped_posts += 1
-            continue
-
-        # 🔑 Chunk FIRST
+            # If text is completely empty, skip early
+            if not cleaned_text:
+                skipped_posts += 1
+                continue
+            logging.info(f"Total posts to process: {len(posts)}")
+    except Exception as e:
+        logging.error("Error processing posts")
+        
+    try:
+        # Chunk FIRST
         chunks = chunk_text(cleaned_text)
 
-        # 🔑 Validate EACH chunk
+        # Validate EACH chunk
         for chunk in chunks:
             if not is_valid_text(chunk):
                 skipped_chunks += 1
@@ -77,14 +83,16 @@ def preprocess_raw_data(
                 "product": product_name,
                 "run_timestamp": run_timestamp
             })
+            logging.info(f"processed chunks count: {len(processed_chunks)}")
+            logging.info("Preprocessing completed successfully")
 
-
+    except Exception as e:
+        logging.error("Error processing chunks")
+        logging.info("preprocessing failed")
+        raise e
+    
     save_json(processed_chunks, output_path)
-
-    print(f"Processed chunks: {len(processed_chunks)}")
-    print(f"Skipped posts (empty): {skipped_posts}")
-    print(f"Skipped chunks (invalid): {skipped_chunks}")
-
+    logging.info(f"Processed chunks saved to: {output_path}")
     return processed_chunks
 
 

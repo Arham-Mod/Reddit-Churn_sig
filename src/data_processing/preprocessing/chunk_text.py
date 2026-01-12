@@ -24,5 +24,6 @@ def chunk_text(text: str, chunk_size: int = 280, overlap: int = 35) -> list[str]
         chunk_words = words[start:end]
         chunks.append(" ".join(chunk_words))
         start += step
+    
 
     return chunks

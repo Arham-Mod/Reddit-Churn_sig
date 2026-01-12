@@ -1,5 +1,4 @@
 import logging
-from utils.logging import logger
 from utils.logging.logger import setup_logging
 from utils.config.load_config import load_yaml_config
 from src.ingestion.reddit_client import create_reddit_client
@@ -13,21 +12,11 @@ def main():
     logger = logging.getLogger(__name__)
 
     # 1. Load config
-    try:
-        config = load_yaml_config("utils/config/reddit.yaml")
-        logger.info("Config loaded successfully")
-        logger.info("Config keys: %s", list(config.keys()))
-    except Exception:
-        logger.exception("Failed to load configuration")
-        raise
+    config = load_yaml_config("utils/config/reddit.yaml")
+
 
     # 2. Create Reddit client
-    try:
-        reddit_client = create_reddit_client()
-        logger.info("Reddit client created successfully")
-    except Exception:
-        logger.exception("Failed to create Reddit client")
-        raise
+    reddit_client = create_reddit_client()
 
     # 3. Fetch posts
     posts = fetch_posts(
@@ -38,14 +27,15 @@ def main():
     sort=config["reddit"]["fetch"]["sort"],
     time_filter=config["reddit"]["fetch"]["time_filter"]
 )
+    #TRY THIS CODE IN MAIN FILE TO CHECK THESE LOGS ARE WORKING OR NOT AND PRESENT IN THE FETCH_POSTS FILE
 
-
+    '''
     print(f"Fetched {len(posts)} posts")
     logger.info("Fetched %d posts", len(posts))
 
     if posts:
         print("Sample post title:", posts[0]["title"])
-
+    '''
     # 4. Save raw posts
     try:
         raw_file_path = save_raw_posts(posts=posts)
