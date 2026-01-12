@@ -1,20 +1,38 @@
+import uuid
+from typing import List, Dict
 import re
-"regex library for text cleaning"
 
-def clean_text(text: str) -> str:
-    if not isinstance(text, str):
-        return ""
+def clean_text(text_units: List[Dict]) -> List[Dict]:
+    """
+    Cleans the 'text' field of each TextUnit while preserving structure.
+    """
 
-    # Normalize whitespace
-    text = re.sub(r"\s+", " ", text)
+    cleaned_units: List[Dict] = []
 
-    # Remove URLs only (LLMs don't need them)
-    text = re.sub(r"http\S+|www\S+", "", text)
+    for unit in text_units:
+        # Safety check
+        if not isinstance(unit, dict):
+            raise TypeError(
+                f"clean_text expected Dict but got {type(unit)}"
+            )
 
-    # Strip removes spaces in the beginning and end
-    text = text.strip()
+        raw_text = unit.get("text", "")
 
-    return text.lower()
+        # Basic cleaning (extend later)
+        text = raw_text.lower()
+        text = re.sub(r"http\S+", "", text)   # remove URLs
+        text = re.sub(r"\s+", " ", text)      # normalize spaces
+        text = text.strip()
+
+        # IMPORTANT: preserve structure
+        new_unit = unit.copy()
+        new_unit["text"] = text
+
+        cleaned_units.append(new_unit)
+
+    return cleaned_units
+
+
 
 def is_valid_text(text: str, min_words: int = 15) -> bool:
     if not text:
