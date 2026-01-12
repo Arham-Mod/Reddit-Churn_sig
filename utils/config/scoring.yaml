@@ -1,0 +1,9 @@
+weights:
+  source_type:
+    post: 1.0
+    comment: 0.5
+
+severity_multiplier:
+  low: 0.5
+  medium: 1.0
+  high: 1.5
