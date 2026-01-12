@@ -1,29 +1,47 @@
-def chunk_text(text: str, chunk_size: int = 280, overlap: int = 35) -> list[str]:
+import uuid
+from typing import List, Dict
+
+def chunk_text(
+    text_units: List[Dict],
+    max_tokens: int = 80,
+    overlap: int = 20
+) -> List[Dict]:
     """
-    Split cleaned text into overlapping word-based chunks for LLM processing.
-
-    Args:
-        text (str): Cleaned input text.
-        chunk_size (int): Number of words per chunk.
-        overlap (int): Number of overlapping words between consecutive chunks.
-
-    Returns:
-        list[str]: List of text chunks.
+    Chunk text per TextUnit while preserving metadata.
     """
-    if not text:
-        return []
 
-    words = text.split()
-    chunks = []
+    chunked_units: List[Dict] = []
 
-    start = 0
-    step = chunk_size - overlap
+    for unit in text_units:
 
-    while start < len(words):
-        end = start + chunk_size
-        chunk_words = words[start:end]
-        chunks.append(" ".join(chunk_words))
-        start += step
-    
+        # DEFENSIVE CHECK (this prevents silent bugs)
+        if not isinstance(unit, dict):
+            raise TypeError(
+                f"chunk_text expected Dict but got {type(unit)}"
+            )
 
-    return chunks
+        text = unit.get("text", "").strip()
+        if not text:
+            continue
+
+        words = text.split()
+        start = 0
+
+        while start < len(words):
+            end = start + max_tokens
+            chunk_words = words[start:end]
+
+            chunked_units.append({
+                "chunk_id": str(uuid.uuid4()),
+                "text": " ".join(chunk_words),
+                "unit_id": unit["id"],
+                "post_id": unit["post_id"],
+                "source_type": unit["source_type"],
+                "author": unit.get("author"),
+                "created_utc": unit["created_utc"],
+                "depth": unit.get("depth", 0),
+            })
+
+            start += max_tokens - overlap
+
+    return chunked_units

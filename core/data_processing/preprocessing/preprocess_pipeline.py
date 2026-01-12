@@ -39,6 +39,8 @@ def preprocess_raw_data(
     skipped_posts = 0
     skipped_chunks = 0
 
+    text_units = []   
+
     try:
         for post in posts:
             title = post.get("title", "")
@@ -52,39 +54,53 @@ def preprocess_raw_data(
 
             raw_text = f"{title} {text}".strip()
 
-
-            cleaned_text = clean_text(raw_text)
-
-            # If text is completely empty, skip early
-            if not cleaned_text:
+            # Skip empty text early
+            if not raw_text:
                 skipped_posts += 1
                 continue
-            logging.info(f"Total posts to process: {len(posts)}")
+
+            text_units.append({
+                "id": post.get("id"),
+                "post_id": post.get("id"),
+                "text": raw_text,
+                "source_type": "post",
+                "subreddit": post.get("subreddit"),
+                "created_utc": post.get("created_utc"),
+                "author": post.get("author"),
+                "depth": 0
+            })
+
+        logging.info(f"Total posts to process: {len(text_units)}")
+
     except Exception as e:
         logging.error("Error processing posts")
+        raise e
         
     try:
-        # Chunk FIRST
-        chunks = chunk_text(cleaned_text)
+        cleaned_units = clean_text(text_units)
 
-        # Validate EACH chunk
+        # Chunk first
+        chunks = chunk_text(cleaned_units)
+
+        # Validate each chunk
         for chunk in chunks:
-            if not is_valid_text(chunk):
+            if not is_valid_text(chunk["text"]):
                 skipped_chunks += 1
                 continue
 
             processed_chunks.append({
-                "chunk_id": str(uuid.uuid4()),
-                "text": chunk,
-                "source_type": "post",
-                "post_id": post.get("id"),
-                "subreddit": post.get("subreddit"),
-                "created_utc": post.get("created_utc"),
+                "chunk_id": chunk["chunk_id"],
+                "text": chunk["text"],
+                "source_type": chunk["source_type"],
+                "post_id": chunk["post_id"],
+                "subreddit": chunk.get("subreddit"),
+                "created_utc": chunk["created_utc"],
                 "product": product_name,
                 "run_timestamp": run_timestamp
             })
-            logging.info(f"processed chunks count: {len(processed_chunks)}")
-            logging.info("Preprocessing completed successfully")
+
+        logging.info(f"processed chunks count: {len(processed_chunks)}")
+        logging.info("Preprocessing completed successfully")
 
     except Exception as e:
         logging.error("Error processing chunks")
@@ -94,6 +110,3 @@ def preprocess_raw_data(
     save_json(processed_chunks, output_path)
     logging.info(f"Processed chunks saved to: {output_path}")
     return processed_chunks
-
-
-
