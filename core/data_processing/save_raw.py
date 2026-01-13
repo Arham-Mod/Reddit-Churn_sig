@@ -23,3 +23,23 @@ def save_raw_posts(posts, base_dir="data/raw"):
     )
 
     return file_path
+
+def save_raw_comments(comments, base_dir="data/raw"):
+    """Saves raw Reddit comments to a JSON file with a timestamped filename."""
+
+    os.makedirs(base_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    file_path = os.path.join(
+        base_dir,
+        f"raw_reddit_comments_{timestamp}.json"
+    )
+
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(comments, f, ensure_ascii=False, indent=2)
+
+    logger.logging.info(
+        "Saved %d comments to %s", len(comments), file_path
+    )
+
+    return file_path
