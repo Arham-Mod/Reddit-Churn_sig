@@ -4,17 +4,17 @@ from typing import List, Dict
 def chunk_text(
     text_units: List[Dict],
     max_tokens: int = 80,
-    overlap: int = 20
+    overlap: int =20
 ) -> List[Dict]:
     """
-    Chunk text per TextUnit while preserving metadata.
+    Split cleaned text in each TextUnit into overlapping word-based chunks for LLM processing.
     """
 
     chunked_units: List[Dict] = []
 
     for unit in text_units:
 
-        # DEFENSIVE CHECK (this prevents silent bugs)
+        # Safety check
         if not isinstance(unit, dict):
             raise TypeError(
                 f"chunk_text expected Dict but got {type(unit)}"
@@ -33,15 +33,25 @@ def chunk_text(
 
             chunked_units.append({
                 "chunk_id": str(uuid.uuid4()),
-                "text": " ".join(chunk_words),
-                "unit_id": unit["id"],
-                "post_id": unit["post_id"],
                 "source_type": unit["source_type"],
-                "author": unit.get("author"),
+                "text": " ".join(chunk_words),
                 "created_utc": unit["created_utc"],
-                "depth": unit.get("depth", 0),
+                "subreddit": unit["subreddit"],
+
+                # Explicit linkage
+                "post_id": unit["post_id"],
+                "comment_id": unit.get("id") if unit["source_type"] == "comment" else None,
+                "parent_comment_id": unit.get("parent_comment_id"),
+
+                "author": unit.get("author"),
+
+                # All non-core fields live here
+                "metadata": {
+                    "score": unit.get("score"),
+                    "depth": unit.get("depth", 0)
+                }
             })
 
             start += max_tokens - overlap
+        return chunked_units
 
-    return chunked_units

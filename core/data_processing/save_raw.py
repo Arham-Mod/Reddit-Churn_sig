@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 from utils.logging import logger
 
+
 def save_raw_posts(posts, base_dir="data/raw"):
     """Saves raw Reddit posts to a JSON file with a timestamped filename."""
 

@@ -17,7 +17,7 @@ reddit:
     - "support"
 
   fetch:
-    post_limit: 50          # max posts per subreddit
+    post_limit: 100          # max posts per subreddit
     comment_limit: 200       # max comments per post
     max_comment_depth: 5     # ignoring very deep replies
     sort: "new"              # new | hot | top

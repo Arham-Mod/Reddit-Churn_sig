@@ -6,6 +6,7 @@ from core.ingestion.fetch_posts import fetch_posts
 from core.data_processing.save_raw import save_raw_posts
 from core.data_processing.preprocessing.preprocess_pipeline import preprocess_raw_data
 from core.ingestion.fetch_comments import fetch_comments
+import json
 
 
 def main():
@@ -69,6 +70,22 @@ def main():
     except Exception:
         logger.exception("Preprocessing failed")
         raise
+    
+    # 5. Save raw comments    
+    comments = fetch_comments(
+        reddit=reddit_client,
+        post_ids=post_ids,
+        )
+    
+    try:
+        with open("data/raw/raw_comments.json", "w") as f:
+            json.dump(comments, f, indent=2)
+        logger.info("Raw comments saved successfully")
+    except Exception:
+        logger.exception("Failed to save raw comments")
+        raise
+
+
 
 
 if __name__ == "__main__":
