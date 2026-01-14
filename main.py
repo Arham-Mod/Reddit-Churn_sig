@@ -5,8 +5,17 @@ from core.ingestion.reddit_client import create_reddit_client
 from core.ingestion.fetch_posts import fetch_posts
 from core.ingestion.fetch_comments import fetch_comments
 from core.data_processing.save_raw import save_raw_comments, save_raw_posts
-from core.data_processing.preprocessing.preprocess_pipeline import preprocess_raw_data
+from core.data_processing.preprocessing.preprocess_pipeline import load_json, preprocess_raw_data
+import json
+from groq import Groq
+import os
+from core.llm_extraction.extract_signals import extract_churn_signals
 
+
+def load_taxonomy(taxonomy_path: str) -> dict:
+        with open(taxonomy_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+        
 
 def main():
     setup_logging()
@@ -75,6 +84,38 @@ def main():
     except Exception:
         logger.exception("Preprocessing failed")
         raise
+
+    #9. Load taxonomy
+    
+    
+    taxonomy = load_taxonomy("core/llm_extraction/churn_signal_taxonomy.json")
+
+    #10. Groq llm client initialization
+    client = Groq(
+        api_key="GET LOGIC TO INTAKE API FROM ENV DIRECTLY",
+    )
+    #need changes
+
+    preprocessed_texts=load_json("data/processed/clean_chunks.json")
+
+    results = []
+
+    for text in preprocessed_texts:
+        signals = extract_churn_signals(
+            text=text,
+            taxonomy=taxonomy,
+            llm_client=client
+        )
+
+        results.append({
+            "text": text,
+            "signals": signals
+        })
+
+    for r in results:
+        print("=" * 80)
+        print("TEXT:", r["text"])
+        print("SIGNALS:", r["signals"])
 
 
 if __name__ == "__main__":
