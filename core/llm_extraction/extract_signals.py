@@ -2,7 +2,7 @@ import json
 import logging
 from typing import List, Dict
 from utils.logging import logger
-
+import re
 
 # -------------------------------------------------------
 # Main public function
@@ -42,7 +42,12 @@ def extract_churn_signals(
 
     final_signals = validate_and_filter_signals(parsed_output, taxonomy)
 
-    return final_signals
+    return {
+    "signals": final_signals,
+    "features": parsed_output.get("features", []),
+    "root_cause": parsed_output.get("root_cause")
+}
+
 
 
 # -------------------------------------------------------
@@ -108,8 +113,7 @@ def call_llm(prompt: str, llm_client) -> str:
             messages=[
                 {"role": "user", "content": prompt}
             ],
-            model="mixtral-8x7b-32768",
-            temperature=0.0
+            model="llama-3.3-70b-versatile"
         )
 
         return response.choices[0].message.content
@@ -123,20 +127,31 @@ def call_llm(prompt: str, llm_client) -> str:
 # Output parser
 # -------------------------------------------------------
 
-def parse_llm_output(raw_output: str) -> Dict:
-    """
-    Parses raw LLM output into Python dict.
-    """
 
+
+def parse_llm_output(raw_output: str) -> Dict:
     if not raw_output:
         return {"signals": []}
 
-    try:
-        return json.loads(raw_output)
+    # Step 1: clean markdown code fences
+    cleaned = raw_output.strip()
 
-    except json.JSONDecodeError:
-        logging.error("Failed to parse LLM JSON output")
+    # remove ```json or ``` at start
+    cleaned = re.sub(r"^```(?:json)?", "", cleaned, flags=re.IGNORECASE).strip()
+
+    # remove ``` at end
+    cleaned = re.sub(r"```$", "", cleaned).strip()
+
+    logging.info(f"CLEANED LLM OUTPUT:\n{cleaned}")
+
+    # Step 2: parse JSON
+    try:
+        return json.loads(cleaned)
+
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON parsing failed: {e}")
         return {"signals": []}
+
 
 
 # -------------------------------------------------------

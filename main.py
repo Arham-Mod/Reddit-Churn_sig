@@ -10,6 +10,8 @@ import json
 from groq import Groq
 import os
 from core.llm_extraction.extract_signals import extract_churn_signals
+from core.llm_extraction.groq_client import get_groq_client
+from core.scoring.aggregrate_signals import aggregate_feature_scores
 
 
 def load_taxonomy(taxonomy_path: str) -> dict:
@@ -91,32 +93,39 @@ def main():
     taxonomy = load_taxonomy("core/llm_extraction/churn_signal_taxonomy.json")
 
     #10. Groq llm client initialization
-    client = Groq(
-        api_key="GET LOGIC TO INTAKE API FROM ENV DIRECTLY",
-    )
-    #need changes
+    llm_client = get_groq_client()
 
     preprocessed_texts=load_json("data/processed/clean_chunks.json")
 
     results = []
 
-    for text in preprocessed_texts:
-        signals = extract_churn_signals(
-            text=text,
+    all_extractions = []
+    ###PROBELM IN THIS LINE
+    chunks = build_chunk()
+
+    for chunk in chunks:
+        extraction = extract_churn_signals(
+            text=chunk["text"],
             taxonomy=taxonomy,
-            llm_client=client
+            llm_client=llm_client
         )
+        extraction["chunk"] = chunk
+        all_extractions.append(extraction)
 
-        results.append({
-            "text": text,
-            "signals": signals
-        })
+    feature_scores = aggregate_feature_scores(all_extractions)
 
-    for r in results:
-        print("=" * 80)
-        print("TEXT:", r["text"])
-        print("SIGNALS:", r["signals"])
+
+    for feature, data in sorted(
+        feature_scores.items(),
+        key=lambda x: x[1]["score"],
+        reverse=True
+    )[:5]:
+        print("\nFEATURE:", feature)
+        print("Score:", round(data["score"], 2))
+        print("Mentions:", data["count"])
+        print("Root causes:", list(data["root_causes"])[:2])
 
 
 if __name__ == "__main__":
     main()
+
