@@ -29,7 +29,7 @@ def chunk_text(
 
         # -------- CASE 1: short text → single chunk --------
         if len(words) <= max_tokens:
-            chunked_units.append(_build_chunk(unit, text))
+            chunked_units.append(build_chunk(unit, text))
             continue
 
         # -------- CASE 2: long text → sliding window --------
@@ -38,7 +38,7 @@ def chunk_text(
             end = start + max_tokens
             chunk_text = " ".join(words[start:end])
 
-            chunked_units.append(_build_chunk(unit, chunk_text))
+            chunked_units.append(build_chunk(unit, chunk_text))
 
             start += max_tokens - overlap
 

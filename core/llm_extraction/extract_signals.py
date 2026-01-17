@@ -42,10 +42,12 @@ def extract_churn_signals(
 
     final_signals = validate_and_filter_signals(parsed_output, taxonomy)
 
+    
     return {
     "signals": final_signals,
     "features": parsed_output.get("features", []),
     "root_cause": parsed_output.get("root_cause")
+
 }
 
 
@@ -133,24 +135,15 @@ def parse_llm_output(raw_output: str) -> Dict:
     if not raw_output:
         return {"signals": []}
 
-    # Step 1: clean markdown code fences
     cleaned = raw_output.strip()
-
-    # remove ```json or ``` at start
     cleaned = re.sub(r"^```(?:json)?", "", cleaned, flags=re.IGNORECASE).strip()
-
-    # remove ``` at end
     cleaned = re.sub(r"```$", "", cleaned).strip()
 
-    logging.info(f"CLEANED LLM OUTPUT:\n{cleaned}")
-
-    # Step 2: parse JSON
     try:
         return json.loads(cleaned)
-
-    except json.JSONDecodeError as e:
-        logging.error(f"JSON parsing failed: {e}")
+    except json.JSONDecodeError:
         return {"signals": []}
+
 
 
 

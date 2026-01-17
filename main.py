@@ -95,13 +95,12 @@ def main():
     #10. Groq llm client initialization
     llm_client = get_groq_client()
 
-    preprocessed_texts=load_json("data/processed/clean_chunks.json")
+    chunks=load_json("data/processed/clean_chunks.json")
+    logger.info("Loaded %d chunks for LLM processing", len(chunks))
 
-    results = []
 
     all_extractions = []
     ###PROBELM IN THIS LINE
-    chunks = build_chunk()
 
     for chunk in chunks:
         extraction = extract_churn_signals(
