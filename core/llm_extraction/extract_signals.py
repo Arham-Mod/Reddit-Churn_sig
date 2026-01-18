@@ -44,45 +44,48 @@ def analyze_text_for_churn(
 # -------------------------------------------------------
 # Prompt builder
 # -------------------------------------------------------
-
-def build_discussion_prompt(discussion: Dict) -> str:
-    comments_text = "\n".join(
-        f"- {c['body']}" for c in discussion["comments"][:50]
-    )
+def build_discussion_prompt(text: str) -> str:
+    """
+    Build LLM prompt for churn issue extraction from discussion text.
+    """
 
     return f"""
-You are an analyst identifying customer churn causes from a Reddit discussion.
+You are an expert product analyst.
 
 TASK:
-Analyze the discussion below and identify concrete issues that could cause users to stop using the product.
+Analyze the following Reddit discussion and identify product-related issues
+that could cause customer churn.
+
+For each issue, return:
+- affected_feature (string)
+- problem_type (bug | UX | pricing | performance | support | policy | other)
+- churn_severity (low | medium | high)
+- supporting_quotes (exact user quotes)
 
 RULES:
-- Only report issues explicitly mentioned by users.
-- Do NOT infer or guess.
-- If there is insufficient evidence, return an empty list.
-- Each issue must include supporting quotes copied verbatim.
+- Only extract issues explicitly mentioned by users
+- Do NOT hallucinate
+- supporting_quotes must be verbatim snippets from the text
+- Return valid JSON ONLY
+- If no issues exist, return an empty list
 
-OUTPUT FORMAT (JSON ONLY):
+OUTPUT FORMAT:
 {{
   "issues": [
     {{
-      "issue_summary": "short description",
-      "affected_feature": "specific feature or area",
-      "problem_type": "bug | ux | pricing | performance | policy | other",
-      "churn_severity": "low | medium | high",
-      "confidence": "low | medium | high",
-      "supporting_quotes": ["exact quote"]
+      "affected_feature": "...",
+      "problem_type": "...",
+      "churn_severity": "...",
+      "supporting_quotes": ["..."]
     }}
   ]
 }}
 
-DISCUSSION:
-Post Title: "{discussion['title']}"
-Post Body: "{discussion['post_body']}"
-
-Comments:
-{comments_text}
-"""
+DISCUSSION TEXT:
+\"\"\"
+{text}
+\"\"\"
+""".strip()
 
 # -------------------------------------------------------
 # LLM call wrapper

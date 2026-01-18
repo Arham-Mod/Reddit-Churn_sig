@@ -1,47 +1,30 @@
-from typing import List, Dict
-
-def format_discussion_text(
-        discussions: Dict,
-        max_comments: int=50
-) -> str:
+def format_discussion_text(discussion: dict) -> str:
     """
-    Convert a Discussion object into a single, coherent text block
-    suitable for LLM analysis.
-
-    Parameters:
-    - discussion: A Discussion dict (post + comments)
-    - max_comments: Max number of comments to include (safety + signal control)
-
-    Returns:
-    - A formatted string representation of the discussion
+    Convert a discussion into a single analysis-ready text block.
     """
 
-    formatted_parts = []
+    parts = []
 
-    title = discussions.get("title", "").strip()
-    post_body = discussions.get("post_body", "").strip()
-    comments: List[Dict] = discussions.get("comments",[])
-
-    comments = comments[:max_comments]
-
-    # -------- Post title --------
+    title = discussion.get("title", "").strip()
     if title:
-        formatted_parts.append("POST TITLE:")
-        formatted_parts.append(title)
-        formatted_parts.append("")
-    
-    # -------- Post body --------
-    if post_body:
-        formatted_parts.append("POST BODY:")
-        formatted_parts.append(post_body)
-        formatted_parts.append("")
+        parts.append(f"POST TITLE:\n{title}")
 
-    # -------- Comments --------
+    body = discussion.get("post_body", "").strip()
+    if body:
+        parts.append(f"\nPOST BODY:\n{body}")
+
+    comments = discussion.get("comments", [])
     if comments:
-        formatted_parts.append("USER COMMENTS:")
-        for idx, comments in enumerate(comments, start=1):
-            body = comments.get("bosy", "").strip()
-            if body:
-                formatted_parts.append(f"{idx}.{body}")
-    
-    return "\n".join(formatted_parts)
+        parts.append("\nUSER COMMENTS:")
+        for i, c in enumerate(comments[:30], 1):
+            text = c.get("body", "").strip()
+            if text:
+                parts.append(f"{i}. {text}")
+
+    formatted = "\n".join(parts).strip()
+
+    # Absolute safety fallback
+    if not formatted:
+        formatted = title or body
+
+    return formatted

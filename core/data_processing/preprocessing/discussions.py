@@ -1,44 +1,66 @@
-from core.data_processing.preprocessing.clean_text import clean_and_filter_comments
-from core.data_processing.preprocessing.grouping import find_comments_for_posts
+import logging
 from typing import List, Dict
+from collections import defaultdict
 
-def build_discussions(posts,comments) -> List[Dict]:
-    '''
-    Input: 
-        posts: raw list of posts
-        comments: raw list of comments
-    
-    Output:
-        List[Discussions]
-    '''
+logger = logging.getLogger(__name__)
 
-    discussions = []
+
+def build_discussions(
+    posts: List[Dict],
+    comments: List[Dict]
+) -> List[Dict]:
+    """
+    Build discussion objects from post + comment records.
+    """
+
+    comments_by_post = defaultdict(list)
+
+    for c in comments:
+        comments_by_post[c["post_id"]].append(c)
+
+    discussions: List[Dict] = []
 
     for post in posts:
-        related_comments = find_comments_for_posts(post,comments)
+        post_id = post["id"]
 
-        cleaned_comments = clean_and_filter_comments(related_comments)
+        title = post.get("text", "").split("\n", 1)[0].strip()
+        post_body = post.get("text", "").split("\n", 1)[1].strip() if "\n" in post.get("text", "") else ""
+
+        cleaned_comments = []
+
+        for c in comments_by_post.get(post_id, []):
+            body = c.get("text", "").strip()
+            if not body:
+                continue
+
+            cleaned_comments.append({
+                "comment_id": c["id"],
+                "body": body,
+                "score": c.get("score", 0),
+                "author": c.get("author"),
+                "created_utc": c.get("created_utc"),
+                "depth": c.get("depth", 0)
+            })
 
         discussion = {
-            "post_id": post["id"],
-            "subreddit": (
-                post.get("subreddit")
-                or post.get("subreddit_name_prefixed")
-                or post.get("subreddit_name")
-                or "unknown"
-            ),
-            "title": post.get("title", "").strip(),
-            "post_body": post.get("body") or post.get("selftext", ""),
+            "post_id": post_id,
+            "subreddit": post.get("subreddit"),
+            "title": title,
+            "post_body": post_body,
             "created_utc": post.get("created_utc"),
-
-            "comments": cleaned_comments,
-
-            "meta": {
-                "num_comments": len(related_comments),
-                "num_valid_comments": len(cleaned_comments)
-            }
+            "score": post.get("score", 0),
+            "author": post.get("author"),
+            "comments": cleaned_comments
         }
+
+        logger.info(
+            f"[DISCUSSION BUILT] post_id={post_id} | "
+            f"title_len={len(title)} | "
+            f"body_len={len(post_body)} | "
+            f"comments={len(cleaned_comments)}"
+        )
 
         discussions.append(discussion)
 
+    logger.info(f"Built {len(discussions)} discussions")
     return discussions

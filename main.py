@@ -74,8 +74,7 @@ def main():
         formatted_text = format_discussion_text(discussion)
 
         chunks = chunk_discussion(
-            formatted_text,
-            max_chars=4000
+            formatted_text
         )
         logging.info(f"Chunks created for post {discussion['post_id']}: {len(chunks)}")
     
