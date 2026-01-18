@@ -1,35 +1,33 @@
+import json
+from groq import Groq
+import os
 import logging
 from utils.logging.logger import setup_logging
 from utils.config.load_config import load_yaml_config
 from core.ingestion.reddit_client import create_reddit_client
 from core.ingestion.fetch_posts import fetch_posts
 from core.ingestion.fetch_comments import fetch_comments
-from core.data_processing.save_raw import save_raw_comments, save_raw_posts
-from core.data_processing.preprocessing.preprocess_pipeline import load_json, preprocess_raw_data
-import json
-from groq import Groq
-import os
-from core.llm_extraction.extract_signals import extract_churn_signals
+from core.data_processing.save_raw import save_raw_posts
+from core.data_processing.preprocessing.discussions import build_discussions
 from core.llm_extraction.groq_client import get_groq_client
-from core.scoring.aggregrate_signals import aggregate_feature_scores
+from core.data_processing.preprocessing.formatting import format_discussion_text
+from core.data_processing.preprocessing.chunk_discussions import chunk_discussion
+from core.llm_extraction.extract_signals import analyze_text_for_churn
+from core.scoring.aggregrate_signals import aggregrate_churn_issues
+from core.scoring.compute_risk_score import compute_churn_scores
 
-
-def load_taxonomy(taxonomy_path: str) -> dict:
-        with open(taxonomy_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-        
 
 def main():
     setup_logging()
     logger = logging.getLogger(__name__)
 
-    # 1. Load config
+    # 1. Load Config
     config = load_yaml_config("utils/config/reddit.yaml")
 
-    # 2. Create Reddit client
+    # 2. Create Reddit Client
     reddit_client = create_reddit_client()
 
-    # 3. Fetch posts
+    # 3. Ftech Posts
     posts = fetch_posts(
         reddit=reddit_client,
         subreddits=config["reddit"]["subreddits"],
@@ -41,18 +39,10 @@ def main():
 
     logger.info("Fetched %d posts", len(posts))
 
-    # 4. Save raw posts
-    try:
-        posts_raw_file_path = save_raw_posts(posts=posts)
-        logger.info("Raw posts saved to: %s", posts_raw_file_path)
-    except Exception:
-        logger.exception("Failed to save raw posts")
-        raise
-
-    # 5. Extract CORRECT post IDs
+    # 4. Extract Correct post IDs
     post_ids = [p["id"] for p in posts]
-
-    # 6. Fetch comments (ONCE)
+    
+    # 5. Fetch comments 
     comments = fetch_comments(
         reddit=reddit_client,
         post_ids=post_ids,
@@ -62,69 +52,76 @@ def main():
 
     logger.info("Fetched %d comments", len(comments))
 
-    # 7. Save raw comments
+    # 6. Save Raw Posts 
     try:
-        comments_raw_file_path = save_raw_comments(comments=comments)
-        logger.info("Raw comments saved to: %s", comments_raw_file_path)
+        posts_raw_file_path = save_raw_posts(posts=posts)
+        logger.info("Raw posts saved to: %s", posts_raw_file_path)
     except Exception:
-        logger.exception("Failed to save raw comments")
-        raise
+        logger.exception("Failed to save raw posts")
 
-    logger.info(
-        "Passing comments_path to preprocessing: %s",
-        comments_raw_file_path
-    )
+    # 7. Build Discussions
+    discussions = build_discussions(posts, comments)
+    logging.info(f"Built {len(discussions)} discussions")
 
-    # 8. Preprocess (LAST STEP)
-    try:
-        preprocess_raw_data(
-            posts_path=posts_raw_file_path,
-            comments_path=comments_raw_file_path,
-            product_name=config["product"]["name"]
-        )
-        logger.info("Preprocessing completed successfully")
-    except Exception:
-        logger.exception("Preprocessing failed")
-        raise
-
-    #9. Load taxonomy
-    taxonomy = load_taxonomy("core/llm_extraction/churn_signal_taxonomy.json")
-
-    #10. Groq llm client initialization
+    # 8. Initialize LLM Client
     llm_client = get_groq_client()
 
-    chunks=load_json("data/processed/clean_chunks.json")
-    logger.info("Loaded %d chunks for LLM processing", len(chunks))
+    discussions_results = []
 
-    all_extractions = []
-    ###PROBLEM IN THIS LINE
+    # 9. Analyze discussions 
 
-    for chunk in chunks:
-        extraction = extract_churn_signals(
-            text=chunk["text"],
-            taxonomy=taxonomy,
-            llm_client=llm_client,
-            return_raw=True
+    for discussion in discussions:
+        formatted_text = format_discussion_text(discussion)
+
+        chunks = chunk_discussion(
+            formatted_text,
+            max_chars=4000
         )
-        extraction["chunk"] = chunk
-        all_extractions.append(extraction)
-        
-    logger.info("===== LLM OUTPUT SUMMARY =====")
-    for i, output in enumerate(raw_llm_outputs[:5]):  # limit if large
-        logger.info("Chunk %d output:\n%s", i + 1, output)
+        logging.info(f"Chunks created for post {discussion['post_id']}: {len(chunks)}")
+    
+        if not chunks:
+            logging.warning(
+                f"Skipping post {discussion['post_id']} — empty formatted text"
+            )
+            continue
 
 
-    feature_scores = aggregate_feature_scores(all_extractions)
+        issues_for_post = []
 
-    for feature, data in sorted(
-        feature_scores.items(),
-        key=lambda x: x[1]["score"],
-        reverse=True
-    )[:5]:
-        print("\nFEATURE:", feature)
-        print("Score:", round(data["score"], 2))
-        print("Mentions:", data["count"])
-        print("Root causes:", list(data["root_causes"])[:2])
+        for chunk in chunks:
+            result = analyze_text_for_churn(
+            text=chunk,
+            post_id=discussion["post_id"],
+            llm_client=llm_client
+            )
+
+            if result:
+                issues_for_post.extend(result["issues"])
+                
+
+        discussions_results.append({
+            "post_id": discussion["post_id"],
+            "issues": issues_for_post
+        })
+
+    # 10. Aggregrate issues
+    aggregated = aggregrate_churn_issues(discussions_results)
+
+    # 11. Compute Churn Scores
+    ranked_issues = compute_churn_scores(aggregated)
+
+    # 12. Output Results
+    print("\n=== TOP CHURN RISKS ===\n")
+
+    for issue in ranked_issues[:5]:
+        print(f"Feature: {issue['affected_feature']}")
+        print(f"Problem: {issue['problem_type']}")
+        print(f"Churn Score: {issue['churn_score']}")
+        print(f"Posts Affected: {issue['num_posts']}")
+        print("Example Quote:")
+        if issue["example_quotes"]:
+            print(f"  - {issue['example_quotes'][0]}")
+        print("-" * 40)
 
 if __name__ == "__main__":
     main()

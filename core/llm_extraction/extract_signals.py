@@ -3,29 +3,37 @@ import logging
 from typing import List, Dict
 from utils.logging import logger
 import re
-'''from core.data_processing.preprocessing.discussions import build_discussions'''
 
 # -------------------------------------------------------
 # Main public function
 # -------------------------------------------------------
 
-def analyze_discussion_for_churn(
-    discussions: Dict,
+def analyze_text_for_churn(
+    text: str,
+    post_id: str,
     llm_client,
     return_raw: bool = False
-):
-    if not discussions or not discussions["comments"]:
-        if return_raw:
-            return None, ""
-        return None
+) -> Dict:
+    """
+    Analyze a formatted discussion text chunk for churn-causing issues.
+    """
+    logging.info(
+    f"[LLM ENTRY] post_id={post_id}, text_length={len(text)}"
+)
 
-    prompt = build_discussion_prompt(discussion)
 
+    if not text or not text.strip():
+        return {"post_id": post_id, "issues": []}
+
+    prompt = build_discussion_prompt(text)
     raw_output = call_llm(prompt, llm_client)
 
-    parsed = parse_llm_output(raw_output)
+    logging.info("========== RAW LLM OUTPUT ==========")
+    logging.info(raw_output)
+    logging.info("====================================")
 
-    validated = validate_llm_issues(parsed, discussion["post_id"])
+    parsed = parse_llm_output(raw_output)
+    validated = validate_llm_issues(parsed, post_id)
 
     if return_raw:
         return validated, raw_output

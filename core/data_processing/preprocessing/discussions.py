@@ -1,5 +1,6 @@
-from core.data_processing.preprocessing.discussions import find_comments_for_posts
 from core.data_processing.preprocessing.clean_text import clean_and_filter_comments
+from core.data_processing.preprocessing.grouping import find_comments_for_posts
+from typing import List, Dict
 
 def build_discussions(posts,comments) -> List[Dict]:
     '''
@@ -20,10 +21,15 @@ def build_discussions(posts,comments) -> List[Dict]:
 
         discussion = {
             "post_id": post["id"],
-            "subreddit": post["subreddit"],
-            "title": post["title"],
-            "post_body": post["body"],
-            "created_utc": post["created_utc"],
+            "subreddit": (
+                post.get("subreddit")
+                or post.get("subreddit_name_prefixed")
+                or post.get("subreddit_name")
+                or "unknown"
+            ),
+            "title": post.get("title", "").strip(),
+            "post_body": post.get("body") or post.get("selftext", ""),
+            "created_utc": post.get("created_utc"),
 
             "comments": cleaned_comments,
 

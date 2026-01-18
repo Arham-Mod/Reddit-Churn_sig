@@ -1,50 +1,69 @@
+from typing import List, Dict, Tuple
 from collections import defaultdict
-from typing import List, Dict
 
-SIGNAL_WEIGHTS = {
-    "explicit_exit_intent": 3.0,
-    "trust_erosion": 2.5,
-    "support_failure": 2.0,
-    "pricing_dissatisfaction": 1.8,
-    "churn_threat": 1.6,
-    "feature_complaint": 1.2,
-    "competitor_comparison": 1.0,
-    "degraded_experience": 1.0
-}
 
-def aggregate_feature_scores(extractions: List[Dict]) -> Dict:
+def aggregrate_churn_issues(
+    discussion_results: List[Dict]
+) -> List[Dict]:
     """
-    Aggregate churn signals by feature.
+    Aggregate post-wise churn issues into feature-level churn signals.
+
+    Input:
+        discussion_results: List of dicts returned by analyze_discussion_for_churn()
+
+    Output:
+        List of aggregated churn issue dicts
     """
 
-    features = defaultdict(lambda: {
-        "score": 0.0,
-        "count": 0,
-        "evidence": [],
-        "root_causes": set()
-    })
+    # Group by (affected_feature, problem_type)
+    grouped = {}
 
-    for item in extractions:
-        signals = item.get("signals", [])
-        feats = item.get("features", [])
-        root = item.get("root_cause")
+    for result in discussion_results:
+        post_id = result.get("post_id")
+        issues = result.get("issues", [])
 
-        for f in feats:
-            feature_name = f.get("canonical") or f.get("raw")
-            feature_conf = f.get("confidence", 0.5)
+        for issue in issues:
+            feature = issue.get("affected_feature")
+            problem_type = issue.get("problem_type")
+            severity = issue.get("churn_severity")
+            quotes = issue.get("supporting_quotes", [])
 
-            for s in signals:
-                weight = SIGNAL_WEIGHTS.get(s["id"], 1.0)
-                features[feature_name]["score"] += (
-                    weight * s["confidence"] * feature_conf
-                )
+            if not feature or not problem_type or not severity:
+                continue
 
-            features[feature_name]["count"] += 1
+            key: Tuple[str, str] = (feature, problem_type)
 
-            if root:
-                features[feature_name]["root_causes"].add(root)
+            if key not in grouped:
+                grouped[key] = {
+                    "affected_feature": feature,
+                    "problem_type": problem_type,
+                    "post_ids": set(),
+                    "severity_distribution": {
+                        "low": 0,
+                        "medium": 0,
+                        "high": 0
+                    },
+                    "example_quotes": []
+                }
 
-            if len(features[feature_name]["evidence"]) < 5:
-                features[feature_name]["evidence"].append(item)
+            grouped[key]["post_ids"].add(post_id)
 
-    return dict(features)
+            if severity in grouped[key]["severity_distribution"]:
+                grouped[key]["severity_distribution"][severity] += 1
+
+            # Collect quotes (cap later)
+            grouped[key]["example_quotes"].extend(quotes)
+
+    # Finalize structure
+    aggregated_issues: List[Dict] = []
+
+    for data in grouped.values():
+        aggregated_issues.append({
+            "affected_feature": data["affected_feature"],
+            "problem_type": data["problem_type"],
+            "num_posts": len(data["post_ids"]),
+            "severity_distribution": data["severity_distribution"],
+            "example_quotes": data["example_quotes"][:3]  # limit noise
+        })
+
+    return aggregated_issues

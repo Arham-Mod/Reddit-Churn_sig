@@ -16,6 +16,8 @@ def format_discussion_text(
     - A formatted string representation of the discussion
     """
 
+    formatted_parts = []
+
     title = discussions.get("title", "").strip()
     post_body = discussions.get("post_body", "").strip()
     comments: List[Dict] = discussions.get("comments",[])
