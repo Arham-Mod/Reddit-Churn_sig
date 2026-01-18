@@ -3,103 +3,78 @@ import logging
 from typing import List, Dict
 from utils.logging import logger
 import re
+'''from core.data_processing.preprocessing.discussions import build_discussions'''
 
 # -------------------------------------------------------
 # Main public function
 # -------------------------------------------------------
 
-def extract_churn_signals(
-    text: str,
-    taxonomy: List[Dict],
-    llm_client
-) -> List[Dict]:
-    """
-    Extract churn signals from a single text chunk using an LLM.
+def analyze_discussion_for_churn(
+    discussions: Dict,
+    llm_client,
+    return_raw: bool = False
+):
+    if not discussions or not discussions["comments"]:
+        if return_raw:
+            return None, ""
+        return None
 
-    Args:
-        text (str): Cleaned reddit post or comment text
-        taxonomy (list[dict]): Normalized churn taxonomy
-        llm_client: Initialized LLM client (Groq or similar)
-
-    Returns:
-        List of validated churn signals:
-        [
-            {"id": "pricing_dissatisfaction", "confidence": 0.82}
-        ]
-    """
-
-    if not text :
-        logger.info("Empty text provided for signal extraction")
-        return []
-    
-    
-
-    prompt = build_extraction_prompt(text, taxonomy)
+    prompt = build_discussion_prompt(discussion)
 
     raw_output = call_llm(prompt, llm_client)
 
-    parsed_output = parse_llm_output(raw_output)
+    parsed = parse_llm_output(raw_output)
 
-    final_signals = validate_and_filter_signals(parsed_output, taxonomy)
+    validated = validate_llm_issues(parsed, discussion["post_id"])
 
-    
-    return {
-    "signals": final_signals,
-    "features": parsed_output.get("features", []),
-    "root_cause": parsed_output.get("root_cause")
+    if return_raw:
+        return validated, raw_output
 
-}
-
+    return validated
 
 
 # -------------------------------------------------------
 # Prompt builder
 # -------------------------------------------------------
 
-def build_extraction_prompt(text: str, taxonomy: List[Dict]) -> str:
-    """
-    Builds a strict prompt for churn signal extraction.
-    """
+def build_discussion_prompt(discussion: Dict) -> str:
+    comments_text = "\n".join(
+        f"- {c['body']}" for c in discussion["comments"][:50]
+    )
 
-    allowed_signals = [
-        f"- {item['id']}: {item['definition']}"
-        for item in taxonomy
-    ]
-
-    signal_block = "\n".join(allowed_signals)
-
-    prompt = f"""
-You are a text classification system.
+    return f"""
+You are an analyst identifying customer churn causes from a Reddit discussion.
 
 TASK:
-Identify which churn signals are present in the given text.
-
-ALLOWED SIGNALS:
-{signal_block}
+Analyze the discussion below and identify concrete issues that could cause users to stop using the product.
 
 RULES:
-- Only use signal IDs from the allowed list
-- Do NOT invent new labels
-- Return valid JSON only
-- If no signals are present, return an empty list
-- Confidence must be between 0 and 1
+- Only report issues explicitly mentioned by users.
+- Do NOT infer or guess.
+- If there is insufficient evidence, return an empty list.
+- Each issue must include supporting quotes copied verbatim.
 
-OUTPUT FORMAT:
+OUTPUT FORMAT (JSON ONLY):
 {{
-  "signals": [
+  "issues": [
     {{
-      "id": "<signal_id>",
-      "confidence": <float>
+      "issue_summary": "short description",
+      "affected_feature": "specific feature or area",
+      "problem_type": "bug | ux | pricing | performance | policy | other",
+      "churn_severity": "low | medium | high",
+      "confidence": "low | medium | high",
+      "supporting_quotes": ["exact quote"]
     }}
   ]
 }}
 
-TEXT TO ANALYZE:
-\"\"\"{text}\"\"\"
+DISCUSSION:
+Post Title: "{discussion['title']}"
+Post Body: "{discussion['post_body']}"
+
+Comments:
+{comments_text}
 """
-
-    return prompt.strip()
-
 
 # -------------------------------------------------------
 # LLM call wrapper
@@ -112,9 +87,7 @@ def call_llm(prompt: str, llm_client) -> str:
 
     try:
         response = llm_client.chat.completions.create(
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
+            messages=[{"role": "user", "content": prompt}],
             model="llama-3.3-70b-versatile"
         )
 
@@ -151,54 +124,22 @@ def parse_llm_output(raw_output: str) -> Dict:
 # Validation & filtering
 # -------------------------------------------------------
 
-def validate_and_filter_signals(
-    extracted: Dict,
-    taxonomy: List[Dict]
-) -> List[Dict]:
-    """
-    Validate signal IDs, apply confidence thresholds,
-    and enforce priority rules.
-    """
+def validate_llm_issues(parsed: Dict, post_id: str) -> Dict:
+    if "issues" not in parsed:
+        return {"post_id": post_id, "issues": []}
 
-    if "signals" not in extracted:
-        return []
+    valid_issues = []
 
-    taxonomy_map = {
-        item["id"]: item for item in taxonomy
+    for issue in parsed["issues"]:
+        if not issue.get("supporting_quotes"):
+            continue
+        if issue.get("churn_severity") not in {"low", "medium", "high"}:
+            continue
+
+        valid_issues.append(issue)
+
+    return {
+        "post_id": post_id,
+        "issues": valid_issues
     }
 
-    valid_signals = []
-
-    for signal in extracted["signals"]:
-        signal_id = signal.get("id")
-        confidence = signal.get("confidence")
-
-        if signal_id not in taxonomy_map:
-            continue
-
-        if not isinstance(confidence, (int, float)):
-            continue
-
-        threshold = taxonomy_map[signal_id]["confidence_threshold"]
-
-        if confidence < threshold:
-            continue
-
-        valid_signals.append({
-            "id": signal_id,
-            "confidence": round(confidence, 2)
-        })
-
-    # Enforce priority rules
-    valid_signals.sort(
-        key=lambda x: taxonomy_map[x["id"]]["priority"]
-    )
-
-    # Remove churn_threat if explicit_exit_intent exists
-    signal_ids = {s["id"] for s in valid_signals}
-    if "explicit_exit_intent" in signal_ids:
-        valid_signals = [
-            s for s in valid_signals if s["id"] != "churn_threat"
-        ]
-
-    return valid_signals

@@ -88,8 +88,6 @@ def main():
         raise
 
     #9. Load taxonomy
-    
-    
     taxonomy = load_taxonomy("core/llm_extraction/churn_signal_taxonomy.json")
 
     #10. Groq llm client initialization
@@ -98,21 +96,25 @@ def main():
     chunks=load_json("data/processed/clean_chunks.json")
     logger.info("Loaded %d chunks for LLM processing", len(chunks))
 
-
     all_extractions = []
-    ###PROBELM IN THIS LINE
+    ###PROBLEM IN THIS LINE
 
     for chunk in chunks:
         extraction = extract_churn_signals(
             text=chunk["text"],
             taxonomy=taxonomy,
-            llm_client=llm_client
+            llm_client=llm_client,
+            return_raw=True
         )
         extraction["chunk"] = chunk
         all_extractions.append(extraction)
+        
+    logger.info("===== LLM OUTPUT SUMMARY =====")
+    for i, output in enumerate(raw_llm_outputs[:5]):  # limit if large
+        logger.info("Chunk %d output:\n%s", i + 1, output)
+
 
     feature_scores = aggregate_feature_scores(all_extractions)
-
 
     for feature, data in sorted(
         feature_scores.items(),
@@ -124,7 +126,5 @@ def main():
         print("Mentions:", data["count"])
         print("Root causes:", list(data["root_causes"])[:2])
 
-
 if __name__ == "__main__":
     main()
-

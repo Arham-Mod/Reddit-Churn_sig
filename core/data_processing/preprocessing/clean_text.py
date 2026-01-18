@@ -1,44 +1,32 @@
-import uuid
-from typing import List, Dict
+from typing import str
 import re
 
-def clean_text(text_units: List[Dict]) -> List[Dict]:
-    """
-    Cleans the 'text' field of each TextUnit while preserving structure.
-    """
 
-    cleaned_units: List[Dict] = []
+def normalize_text(text: str) -> str:
+    text = text.lower()
+    text = re.sub(r"http\S+", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
-    for unit in text_units:
-        # Safety check
-        if not isinstance(unit, dict):
-            raise TypeError(
-                f"clean_text expected Dict but got {type(unit)}"
-            )
+def clean_and_filter_comments(comments):
+    cleaned = []
 
-        raw_text = unit.get("text", "")
+    for c in comments:
+        body = c.get("body", "")
 
-        # Basic cleaning (extend later)
-        text = raw_text.lower()
-        text = re.sub(r"http\S+", "", text)   # remove URLs
-        text = re.sub(r"\s+", " ", text)      # normalize spaces
-        text = text.strip()
+        if body in ("[deleted]", "[removed]"):
+            continue
 
-        # IMPORTANT: preserve structure
-        new_unit = unit.copy()
-        new_unit["text"] = text
+        body = normalize_text(body)
 
-        cleaned_units.append(new_unit)
+        if len(body.split()) < 5:
+            continue
 
-    return cleaned_units
+        cleaned.append({
+            "comment_id": c["id"],
+            "body": body,
+            "score": c.get("score", 0),
+            "created_utc": c.get("created_utc")
+        })
 
-
-
-def is_valid_text(text: str, min_words: int = 15) -> bool:
-    if not text:
-        return False
-
-    if text.strip() in {"[deleted]", "[removed]"}:
-        return False
-
-    return len(text.split()) >= min_words
+    return cleaned
