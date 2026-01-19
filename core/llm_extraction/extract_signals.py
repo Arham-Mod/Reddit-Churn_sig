@@ -1,7 +1,6 @@
 import json
 import logging
 from typing import List, Dict
-from utils.logging import logger
 import re
 
 # -------------------------------------------------------
@@ -12,7 +11,6 @@ def analyze_text_for_churn(
     text: str,
     post_id: str,
     llm_client,
-    return_raw: bool = False
 ) -> Dict:
     """
     Analyze a formatted discussion text chunk for churn-causing issues.
@@ -32,9 +30,6 @@ def analyze_text_for_churn(
     parsed = parse_llm_output(raw_output)
     
     validated = validate_llm_issues(parsed, post_id)
-
-    if return_raw:
-        return validated, raw_output
 
     return validated
 
@@ -93,19 +88,24 @@ def call_llm(prompt: str, llm_client) -> str:
     """
     Sends the prompt to the LLM and returns raw text response.
     """
-
     try:
         response = llm_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
-            model="llama-3.3-70b-versatile"
         )
 
-        return response.choices[0].message.content
+        # HARD EXTRACT — no Groq objects escape
+        content = response.choices[0].message.content
+
+        if not isinstance(content, str):
+            logging.error("LLM response content is not a string")
+            return ""
+
+        return content
 
     except Exception as e:
         logging.error(f"LLM call failed: {e}")
         return ""
-
 
 # -------------------------------------------------------
 # Output parser
@@ -115,7 +115,7 @@ def call_llm(prompt: str, llm_client) -> str:
 
 def parse_llm_output(raw_output: str) -> Dict:
     if not raw_output:
-        return {"signals": []}
+        return {"issues": []}
 
     cleaned = raw_output.strip()
     cleaned = re.sub(r"^```(?:json)?", "", cleaned, flags=re.IGNORECASE).strip()
