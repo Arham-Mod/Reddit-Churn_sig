@@ -1,5 +1,8 @@
 import streamlit as st
 import logging
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from utils.config.load_config import load_yaml_config
 from pipeline import run_pipeline   # import your pipeline function
