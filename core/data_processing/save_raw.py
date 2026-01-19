@@ -15,12 +15,17 @@ def save_raw_posts(posts, base_dir="data/raw"):
         f"raw_reddit_posts_{timestamp}.json"
     )
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(posts, f, ensure_ascii=False, indent=2)
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(posts, f, ensure_ascii=False, indent=2)
 
-    logger.logging.info(
-        "Saved %d posts to %s", len(posts), file_path
-    )
+        logger.logging.info(
+            "Saved %d posts to %s", len(posts), file_path
+        )
+    
+    except Exception:
+        logger.exception("Failed to save raw posts")
+
 
     return file_path
 
@@ -35,11 +40,17 @@ def save_raw_comments(comments, base_dir="data/raw"):
         f"raw_reddit_comments_{timestamp}.json"
     )
 
-    with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(comments, f, ensure_ascii=False, indent=2)
+    try:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(comments, f, ensure_ascii=False, indent=2)
 
-    logger.logging.info(
-        "Saved %d comments to %s", len(comments), file_path
-    )
+        logger.logging.info(
+            "Saved %d comments to %s", len(comments), file_path
+        )
+    
+    except Exception:
+        logger.exception("Failed to save raw comments"
+        )
+
 
     return file_path

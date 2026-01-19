@@ -26,13 +26,11 @@ def analyze_text_for_churn(
         return {"post_id": post_id, "issues": []}
 
     prompt = build_discussion_prompt(text)
+
     raw_output = call_llm(prompt, llm_client)
 
-    logging.info("========== RAW LLM OUTPUT ==========")
-    logging.info(raw_output)
-    logging.info("====================================")
-
     parsed = parse_llm_output(raw_output)
+    
     validated = validate_llm_issues(parsed, post_id)
 
     if return_raw:

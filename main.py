@@ -27,7 +27,7 @@ def main():
     # 2. Create Reddit Client
     reddit_client = create_reddit_client()
 
-    # 3. Ftech Posts
+    # 3. Ftech Posts (loggers inside func)
     posts = fetch_posts(
         reddit=reddit_client,
         subreddits=config["reddit"]["subreddits"],
@@ -37,12 +37,11 @@ def main():
         time_filter=config["reddit"]["fetch"]["time_filter"]
     )
 
-    logger.info("Fetched %d posts", len(posts))
 
     # 4. Extract Correct post IDs
     post_ids = [p["id"] for p in posts]
     
-    # 5. Fetch comments 
+    # 5. Fetch comments (loggers inside func)
     comments = fetch_comments(
         reddit=reddit_client,
         post_ids=post_ids,
@@ -50,18 +49,14 @@ def main():
         max_depth=config["reddit"]["fetch"]["max_comment_depth"],
     )
 
-    logger.info("Fetched %d comments", len(comments))
-
     # 6. Save Raw Posts 
-    try:
-        posts_raw_file_path = save_raw_posts(posts=posts)
-        logger.info("Raw posts saved to: %s", posts_raw_file_path)
-    except Exception:
-        logger.exception("Failed to save raw posts")
+    save_raw_posts(posts)
+
+    # 7. Save Raw Comments
+    save_raw_posts(comments)
 
     # 7. Build Discussions
     discussions = build_discussions(posts, comments)
-    logging.info(f"Built {len(discussions)} discussions")
 
     # 8. Initialize LLM Client
     llm_client = get_groq_client()
@@ -76,6 +71,7 @@ def main():
         chunks = chunk_discussion(
             formatted_text
         )
+        '''
         logging.info(f"Chunks created for post {discussion['post_id']}: {len(chunks)}")
     
         if not chunks:
@@ -83,7 +79,7 @@ def main():
                 f"Skipping post {discussion['post_id']} — empty formatted text"
             )
             continue
-
+        '''
 
         issues_for_post = []
 
