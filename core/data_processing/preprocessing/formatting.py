@@ -1,6 +1,6 @@
 def format_discussion_text(discussion: dict) -> str:
     """
-    Convert a discussion into a single analysis-ready text block.
+    Convert a discussion into a single analysis ready text block.
     """
 
     parts = []
@@ -22,9 +22,5 @@ def format_discussion_text(discussion: dict) -> str:
                 parts.append(f"{i}. {text}")
 
     formatted = "\n".join(parts).strip()
-
-    # Absolute safety fallback
-    if not formatted:
-        formatted = title or body
 
     return formatted

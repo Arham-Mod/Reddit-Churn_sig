@@ -41,13 +41,12 @@ def fetch_comments(
                 if collected >= comment_limit:
                     break
 
-                # Safety: ensure this is a real comment
                 if not hasattr(comment, "body"):
                     continue
 
                 body = comment.body.strip()
 
-                # Skip deleted / removed / empty comments
+                # Skip deleted, removed, empty comments
                 if body in ("[deleted]", "[removed]", ""):
                     continue
 

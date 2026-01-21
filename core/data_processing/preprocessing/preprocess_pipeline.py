@@ -4,9 +4,11 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
+# check below both lines for error as these files do not exist
+'''
 from core.data_processing.preprocessing.chunk_text import chunk_text
 from core.data_processing.preprocessing.clean_text import clean_text, is_valid_text
-
+'''
 
 # Functions to get latest raw data files
 def get_latest_raw_posts_file(raw_dir="data/raw") -> str:
@@ -94,7 +96,7 @@ def preprocess_raw_data(
         raise e
 
 
-    # ---------- NEW: COMMENT INGESTION ----------
+    # comment ingestion
     try:
         comments_path = get_latest_raw_comments_file()
         comments = load_json(comments_path)
@@ -130,51 +132,6 @@ def preprocess_raw_data(
     except Exception as e:
         logging.error("Error processing comments")
         raise e
-    # -------------------------------------------
-
-
-    try:
-        cleaned_units = clean_text(text_units)
-
-        # Chunk first
-        chunks = chunk_text(cleaned_units)
-
-        # Validate each chunk
-        for chunk in chunks:
-            if not is_valid_text(chunk["text"]):
-                skipped_chunks += 1
-                continue
-
-            processed_chunks.append({
-                "chunk_id": chunk["chunk_id"],
-                "source_type": chunk["source_type"],
-                "text": chunk["text"],
-                "post_id": chunk["post_id"],
-                "comment_id": chunk.get("comment_id"),
-                "parent_comment_id": chunk.get("parent_comment_id"),
-                "author": chunk.get("author"),
-                "subreddit": chunk.get("subreddit"),
-                "created_utc": chunk["created_utc"],
-                "product": product_name,
-                "run_timestamp": run_timestamp,
-                "metadata": {
-                    "depth": chunk.get("depth", 0),
-                    "score": chunk.get("score")
-                }
-            })
-
-        logging.info(f"processed chunks count: {len(processed_chunks)}")
-        logging.info("Preprocessing completed successfully")
-
-    except Exception as e:
-        logging.error("Error processing chunks")
-        logging.info("preprocessing failed")
-        raise e
     
-
-    save_json(processed_chunks, output_path)
-    logging.info(f"Processed chunks saved to: {output_path}")
-
-    logging.info(f"Chunks before validation: {len(chunks)}")
     logging.info(f"Chunks after validation: {len(processed_chunks)}")
     return processed_chunks

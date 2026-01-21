@@ -63,7 +63,7 @@ def aggregrate_churn_issues(
             "problem_type": data["problem_type"],
             "num_posts": len(data["post_ids"]),
             "severity_distribution": data["severity_distribution"],
-            "example_quotes": data["example_quotes"][:3]  # limit noise
+            "example_quotes": data["example_quotes"][:3]
         })
 
     return aggregated_issues

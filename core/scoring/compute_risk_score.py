@@ -49,3 +49,11 @@ def compute_churn_scores(
     )
 
     return scored_issues
+
+
+
+
+
+"""
+understand all the codes in this file and the aggregrate scoring files 
+"""

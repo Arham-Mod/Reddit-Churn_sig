@@ -3,9 +3,6 @@ import logging
 from typing import List, Dict
 import re
 
-# -------------------------------------------------------
-# Main public function
-# -------------------------------------------------------
 
 def analyze_text_for_churn(
     text: str,
@@ -34,9 +31,6 @@ def analyze_text_for_churn(
     return validated
 
 
-# -------------------------------------------------------
-# Prompt builder
-# -------------------------------------------------------
 def build_discussion_prompt(text: str) -> str:
     """
     Build LLM prompt for churn issue extraction from discussion text.
@@ -80,9 +74,6 @@ DISCUSSION TEXT:
 \"\"\"
 """.strip()
 
-# -------------------------------------------------------
-# LLM call wrapper
-# -------------------------------------------------------
 
 def call_llm(prompt: str, llm_client) -> str:
     """
@@ -94,7 +85,6 @@ def call_llm(prompt: str, llm_client) -> str:
             messages=[{"role": "user", "content": prompt}],
         )
 
-        # HARD EXTRACT — no Groq objects escape
         content = response.choices[0].message.content
 
         if not isinstance(content, str):
@@ -106,10 +96,6 @@ def call_llm(prompt: str, llm_client) -> str:
     except Exception as e:
         logging.error(f"LLM call failed: {e}")
         return ""
-
-# -------------------------------------------------------
-# Output parser
-# -------------------------------------------------------
 
 
 
@@ -128,10 +114,6 @@ def parse_llm_output(raw_output: str) -> Dict:
 
 
 
-
-# -------------------------------------------------------
-# Validation & filtering
-# -------------------------------------------------------
 
 def validate_llm_issues(parsed: Dict, post_id: str) -> Dict:
     if "issues" not in parsed:
