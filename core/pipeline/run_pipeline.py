@@ -58,6 +58,13 @@ def main():
         logger.info("Raw posts saved to: %s", posts_raw_file_path)
     except Exception:
         logger.exception("Failed to save raw posts")
+    
+    # 7. Save Raw Comments
+    try:
+        comments_raw_file_path = save_raw_comments(comments=comments)
+        logger.info("Raw comments saved to: %s", comments_raw_file_path)
+    except Exception:
+        logger.exception("Failed to save raw comments")
 
     # 7. Build Discussions
     discussions = build_discussions(posts, comments)
@@ -104,18 +111,27 @@ def main():
     # 11. Compute Churn Scores
     ranked_issues = compute_churn_scores(aggregated)
 
-    # 12. Output Results
-    print("\n=== TOP CHURN RISKS ===\n")
+    # 12. Output Results In Logs
+# 12. Output Results In Logs
+    logger.info("=== TOP CHURN RISKS ===")
 
     for issue in ranked_issues[:5]:
-        print(f"Feature: {issue['affected_feature']}")
-        print(f"Problem: {issue['problem_type']}")
-        print(f"Churn Score: {issue['churn_score']}")
-        print(f"Posts Affected: {issue['num_posts']}")
-        print("Example Quote:")
-        if issue["example_quotes"]:
-            print(f"  - {issue['example_quotes'][0]}")
-        print("-" * 40)
+        logger.info(
+            "Feature=%s | Problem=%s | ChurnScore=%s | PostsAffected=%s",
+            issue.get("affected_feature"),
+            issue.get("problem_type"),
+            issue.get("churn_score"),
+            issue.get("num_posts"),
+        )
+
+        if issue.get("example_quotes"):
+            logger.info(
+                "ExampleQuote=%s",
+                issue["example_quotes"][0]
+            )
+
+        logger.info("-" * 40)
+
 
 if __name__ == "__run_pipeline__":
     main()
