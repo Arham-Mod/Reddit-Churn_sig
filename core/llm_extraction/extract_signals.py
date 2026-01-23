@@ -37,33 +37,42 @@ def build_discussion_prompt(text: str) -> str:
     """
 
     return f"""
-You are an expert product analyst.
+You are a customer churn analyst. Extract product issues that indicate users may leave/cancel.
 
-TASK:
-Analyze the following Reddit discussion and identify product-related issues
-that could cause customer churn.
+CRITICAL RULES:
+1. Extract ONLY issues explicitly stated by users
+2. Use exact quotes verbatim—no paraphrasing
+3. Return valid JSON only—no markdown, no preamble
+4. Empty list if no churn signals found
 
-For each issue, return:
-- affected_feature (string)
-- problem_type (bug | UX | pricing | performance | support | policy | other)
-- churn_severity (low | medium | high)
-- supporting_quotes (exact user quotes)
-
-RULES:
-- Only extract issues explicitly mentioned by users
-- Do NOT hallucinate
-- supporting_quotes must be verbatim snippets from the text
-- Return valid JSON ONLY
-- If no issues exist, return an empty list
-
-OUTPUT FORMAT:
+OUTPUT SCHEMA:
 {{
   "issues": [
     {{
-      "affected_feature": "...",
-      "problem_type": "...",
-      "churn_severity": "...",
-      "supporting_quotes": ["..."]
+      "affected_feature": "string",
+      "problem_type": "bug|UX|pricing|performance|support|policy|feature_removal|product_quality",
+      "churn_severity": "low|medium|high",
+      "supporting_quotes": ["exact quote 1", "exact quote 2"]
+    }}
+  ]
+}}
+
+SEVERITY GUIDE:
+- HIGH: Explicitly threatens cancellation, blocks core workflow, breaks critical feature
+- MEDIUM: Causes frustration, workarounds needed, degrades experience significantly  
+- LOW: Minor annoyance, cosmetic issue, feature request
+
+EXAMPLE INPUT:
+"The new UI is confusing. I can't find my playlists anymore and might switch to Apple Music."
+
+EXAMPLE OUTPUT:
+{{
+  "issues": [
+    {{
+      "affected_feature": "Navigation/UI",
+      "problem_type": "UX",
+      "churn_severity": "high",
+      "supporting_quotes": ["I can't find my playlists anymore and might switch to Apple Music"]
     }}
   ]
 }}
@@ -72,7 +81,8 @@ DISCUSSION TEXT:
 \"\"\"
 {text}
 \"\"\"
-""".strip()
+
+JSON OUTPUT:""".strip()
 
 
 def call_llm(prompt: str, llm_client) -> str:

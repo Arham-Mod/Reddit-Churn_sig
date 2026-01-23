@@ -66,16 +66,16 @@ def main():
     except Exception:
         logger.exception("Failed to save raw comments")
 
-    # 7. Build Discussions
+    # 8. Build Discussions
     discussions = build_discussions(posts, comments)
     logging.info(f"Built {len(discussions)} discussions")
 
-    # 8. Initialize LLM Client
+    # 9. Initialize LLM Client
     llm_client = get_groq_client()
 
     discussions_results = []
 
-    # 9. Analyze discussions 
+    # 10. Analyze discussions 
 
     for discussion in discussions:
         formatted_text = format_discussion_text(discussion)
@@ -105,14 +105,13 @@ def main():
             "issues": issues_for_post
         })
 
-    # 10. Aggregrate issues
+    # 11. Aggregrate issues
     aggregated = aggregrate_churn_issues(discussions_results)
 
-    # 11. Compute Churn Scores
+    # 12. Compute Churn Scores
     ranked_issues = compute_churn_scores(aggregated)
 
-    # 12. Output Results In Logs
-# 12. Output Results In Logs
+    # 13. Output Results In Logs
     logger.info("=== TOP CHURN RISKS ===")
 
     for issue in ranked_issues[:5]:

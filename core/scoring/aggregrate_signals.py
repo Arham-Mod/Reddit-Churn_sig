@@ -1,5 +1,4 @@
 from typing import List, Dict, Tuple
-from collections import defaultdict
 
 
 def aggregrate_churn_issues(
@@ -15,7 +14,6 @@ def aggregrate_churn_issues(
         List of aggregated churn issue dicts
     """
 
-    # Group by (affected_feature, problem_type)
     grouped = {}
 
     for result in discussion_results:
@@ -38,31 +36,41 @@ def aggregrate_churn_issues(
                     "affected_feature": feature,
                     "problem_type": problem_type,
                     "post_ids": set(),
-                    "severity_distribution": {
-                        "low": 0,
-                        "medium": 0,
-                        "high": 0
-                    },
+                    "post_severity": {},              
                     "example_quotes": []
                 }
 
             grouped[key]["post_ids"].add(post_id)
 
-            if severity in grouped[key]["severity_distribution"]:
-                grouped[key]["severity_distribution"][severity] += 1
+            prev_sev = grouped[key]["post_severity"].get(post_id)
 
-            # Collect quotes (cap later)
+            severity_rank = {"low": 1, "medium": 2, "high": 3}
+
+            if prev_sev is None:
+                grouped[key]["post_severity"][post_id] = severity
+            else:
+                if severity_rank[severity] > severity_rank[prev_sev]:
+                    grouped[key]["post_severity"][post_id] = severity
+
             grouped[key]["example_quotes"].extend(quotes)
 
-    # Finalize structure
     aggregated_issues: List[Dict] = []
 
     for data in grouped.values():
+        severity_distribution = {
+            "low": 0,
+            "medium": 0,
+            "high": 0
+        }
+
+        for sev in data["post_severity"].values():
+            severity_distribution[sev] += 1
+
         aggregated_issues.append({
             "affected_feature": data["affected_feature"],
             "problem_type": data["problem_type"],
             "num_posts": len(data["post_ids"]),
-            "severity_distribution": data["severity_distribution"],
+            "severity_distribution": severity_distribution,
             "example_quotes": data["example_quotes"][:3]
         })
 
