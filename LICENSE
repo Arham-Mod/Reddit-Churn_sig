@@ -1,0 +1,73 @@
+CHURN - Educational and Review License v1.0
+
+Copyright (c) 2026 Mohd Arham
+
+This license governs the use of the CHURN software project ("the Software").
+
+PERMITTED USES
+==============
+
+You are granted the right to:
+
+1. **USE FOR EDUCATIONAL PURPOSES**
+   - Use the Software for learning, research, and educational activities
+   - Use the Software as part of internship programs, training, or skill development
+   - Use the Software for academic projects, coursework, or portfolio building
+
+2. **USE FOR REVIEW AND EVALUATION**
+   - Review, analyze, and evaluate the Software's architecture, design, and implementation
+   - Use the Software for technical interviews, code reviews, or hiring assessments
+   - Provide feedback, suggestions, or improvements to the Software
+
+3. **CLONE AND DOWNLOAD**
+   - Clone, download, or otherwise obtain copies of the Software from official repositories
+   - Store local copies for personal or educational use
+
+4. **MODIFY FOR LEARNING**
+   - Modify the Software for personal learning, experimentation, or educational purposes
+   - Create derivative works for academic projects or portfolio demonstration
+
+RESTRICTIONS
+============
+
+You are NOT permitted to:
+
+1. **COMMERCIAL USE**
+   - Use the Software for commercial purposes, revenue generation, or business operations
+   - Incorporate the Software into commercial products or services
+   - Use the Software to provide paid services or consulting
+
+2. **REDISTRIBUTION**
+   - Redistribute, sell, or otherwise transfer the Software to third parties
+   - Host the Software on public platforms without explicit permission
+   - Include the Software in commercial software distributions
+
+3. **PRODUCTION DEPLOYMENT**
+   - Deploy the Software in production environments for business operations
+   - Use the Software for processing real customer data in commercial contexts
+
+4. **REBRANDING**
+   - Remove or alter copyright notices, license terms, or attribution
+   - Claim ownership or authorship of the original Software
+
+5. **REVERSE ENGINEERING**
+   - Reverse engineer the Software for competitive analysis or commercial exploitation
+
+ATTRIBUTION
+===========
+
+Any permitted use of the Software must include appropriate attribution to the original authors and maintain this license notice.
+
+DISCLAIMER
+==========
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+THIRD-PARTY LIBRARIES
+=====================
+
+This Software incorporates third-party libraries with their own licensing terms. Users must comply with all applicable third-party licenses.
+
+---
+
+This license is designed to promote education, learning, and technical evaluation while protecting the intellectual property and commercial interests of the authors.

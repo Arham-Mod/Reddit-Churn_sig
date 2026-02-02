@@ -1,4 +1,4 @@
-# Reddit Churn Signal Detector - v1.0
+# CHURN - v1.0
 
 _A reproducible, AI-powered customer churn analysis system_
 
@@ -7,11 +7,22 @@ A production-grade, modular ML pipeline that uses advanced language models to id
 _A Mini research-to-production pipeline_
 
 <p align="center">
-  <img src="docs/churn_analysis.gif" alt="Churn Analysis Visualization" width="300" />
+  <table>
+    <tr>
+      <td align="center" style="border: 2px solid #ddd; padding: 20px; border-radius: 8px;">
+        <strong>Input and Loading Stage</strong><br><br>
+        <img src="sample/Input_sample.png" alt="Input and Loading" width="400" />
+      </td>
+      <td align="center" style="border: 2px solid #ddd; padding: 20px; border-radius: 8px;">
+        <strong>Final Output Stage</strong><br><br>
+        <img src="sample/Output_sample.png" alt="Final Output" width="400" />
+      </td>
+    </tr>
+  </table>
 </p>
 
 <p align="center">
-  <em>Sample churn risk analysis for <strong>"Spotify"</strong> discussions using Reddit Churn Signal Detector.</em>
+  <em>CHURN workflow: User input and loading (left) → Churn analysis results (right) for <strong>"Applesucks"</strong> subreddit</em>
 </p>
 
 ---
@@ -43,7 +54,7 @@ _A Mini research-to-production pipeline_
 
 ## Overview
 
-Reddit Churn Signal Detector v1.0 exists to make the process of identifying customer churn risks from social media discussions accessible and automated. It wraps around an advanced LLM analysis pipeline, exposes it through a production-ready Streamlit web interface, and also provides a command-line interface for batch and local workflows.
+CHURN v1.0 exists to make the process of identifying customer churn risks from social media discussions accessible and automated. It wraps around an advanced LLM analysis pipeline, exposes it through a production-ready Streamlit web interface, and also provides a command-line interface for batch and local workflows.
 
 The motivation behind this system is to provide early warning signals for customer churn by analyzing real user discussions in real-time. While the analysis is not a substitute for comprehensive customer surveys, it serves as a valuable early indicator that can trigger proactive customer retention strategies. This removes the need to wait for formal feedback channels and allows more focus on immediate issue resolution.
 
@@ -62,7 +73,7 @@ The motivation behind this system is to provide early warning signals for custom
 
 ## Features
 
-### Built for Production Reddit Churn Signal Detector v1.0 can:
+### Built for Production CHURN v1.0 can:
 * Analyze Reddit discussions for churn-causing issues using advanced LLM
 - Extract issues in multiple categories: **bug**, **UX**, **pricing**, **performance**, **support**, **policy**, **feature_removal**, **product_quality**  
 - Provide both **Streamlit web interface** and **CLI** workflows  
@@ -80,14 +91,14 @@ The motivation behind this system is to provide early warning signals for custom
 ### Note 
 > The quality of churn signal detection depends on the availability and quality of Reddit discussions about your product. Outputs from this system are indicators of potential churn risk and should be combined with other customer feedback channels for comprehensive analysis. This is an advantage over traditional surveys, as you get real-time, unfiltered customer sentiment that can trigger immediate action.
 
-While Reddit Churn Signal Detector's architecture is production-ready, final analysis accuracy depends on the underlying LLM model, discussion volume, and integration with your customer support workflows.
+While CHURN's architecture is production-ready, final analysis accuracy depends on the underlying LLM model, discussion volume, and integration with your customer support workflows.
 
 
 ---
 
 ## Installation
 
-It is recommended to set up Reddit Churn Signal Detector in an isolated Python environment using either Conda or venv.
+It is recommended to set up CHURN in an isolated Python environment using either Conda or venv.
 
 ### Using Conda:
 
@@ -118,7 +129,7 @@ GROQ_API_KEY=your_groq_api_key
 ```
 
 ### Deployment
-Reddit Churn Signal Detector is designed for easy deployment in both development and production environments.
+CHURN is designed for easy deployment in both development and production environments.
 - **Docker-ready** (coming soon) for reproducible builds.
 - Supports **cloud platform deployment** (AWS, GCP, Azure) and on-prem.
 - Compatible with **Kubernetes scaling patterns** for serving multiple analysis jobs in parallel.
@@ -160,10 +171,11 @@ reddit-churn-sig/
 │
 ├── data/
 │   └── raw/                       # Raw Reddit data storage
+│   └── processed/                 # Processed data storage
 │
-├── docs/
-│   ├── architecture.png           # System architecture diagram
-│   └── analysis_examples.png       # Sample analysis outputs
+├── sample/
+│   ├── Input_sample.png           # Input and loading stage screenshot
+│   └── Output_sample.png          # Final output stage screenshot
 │
 ├── app.py                         # Streamlit entry point
 ├── main.py                        # CLI entry point
@@ -206,7 +218,7 @@ python main.py
 
 ## Configuration
 
-Reddit Churn Signal Detector uses `utils/config/reddit.yaml` for runtime configuration. Modify these settings to tune analysis behavior and data collection parameters.
+CHURN uses `utils/config/reddit.yaml` for runtime configuration. Modify these settings to tune analysis behavior and data collection parameters.
 
 ### Configuration Parameters Explained
 
