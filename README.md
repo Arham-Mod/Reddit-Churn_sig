@@ -11,11 +11,11 @@ _A Mini research-to-production pipeline_
     <tr>
       <td align="center" style="border: 2px solid #ddd; padding: 20px; border-radius: 8px;">
         <strong>Input and Loading Stage</strong><br><br>
-        <img src="sample/Input_sample.png" alt="Input and Loading" width="400" />
+        <img src="Sample/Input_sample.png" alt="Input and Loading" width="400" />
       </td>
       <td align="center" style="border: 2px solid #ddd; padding: 20px; border-radius: 8px;">
         <strong>Final Output Stage</strong><br><br>
-        <img src="sample/Output_sample.png" alt="Final Output" width="400" />
+        <img src="Sample/Output_sample.png" alt="Final Output" width="400" />
       </td>
     </tr>
   </table>
