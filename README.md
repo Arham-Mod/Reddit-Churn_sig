@@ -20,25 +20,24 @@ _A Mini research-to-production pipeline_
 1. [Overview](#overview) 
 2. [Features](#features)  
 3. [Note on Analysis Quality](#note) 
-4. [Performance & Benchmarks](#performance--benchmarks) 
-5. [Installation](#installation)  
+4. [Installation](#installation)  
    - [Using Conda](#using-conda)  
    - [Using Python venv](#using-python-venv)  
    - [Deployment](#deployment)  
-6. [Project Structure](#project-structure)  
-7. [Usage](#usage)  
+5. [Project Structure](#project-structure)  
+6. [Usage](#usage)  
    - [Running the Streamlit App](#running-the-streamlit-app)  
      - [Local Development](#local-development)  
    - [Running via CLI](#running-via-cli)  
      - [Quick Examples](#quick-examples)  
      - [Key CLI Parameters](#key-cli-parameters)  
-8. [Configuration](#configuration)  
+7. [Configuration](#configuration)  
    - [Configuration Parameters Explained](#configuration-parameters-explained)  
      - [Product Settings](#product-settings)  
      - [Reddit Settings](#reddit-settings)  
      - [Fetch Parameters](#fetch-parameters)  
    - [Performance Tuning Tips](#performance-tuning-tips)  
-9. [License](#license)
+8. [License](#license)
 
 ---
 
@@ -60,17 +59,6 @@ The motivation behind this system is to provide early warning signals for custom
 
 ---
 
-## System Architecture
-
-<p align="center">
-  <img src="docs/architecture.png" alt="Reddit Churn Signal Detector Architecture" width="800" />
-</p>
-
-<p align="center">
-  <em>High-level architecture of the churn detection pipeline, showing data ingestion, LLM analysis, scoring, and presentation layers.</em>
-</p>
-
----
 
 ## Features
 
@@ -94,30 +82,6 @@ The motivation behind this system is to provide early warning signals for custom
 
 While Reddit Churn Signal Detector's architecture is production-ready, final analysis accuracy depends on the underlying LLM model, discussion volume, and integration with your customer support workflows.
 
----
-
-## Performance & Benchmarks
-
-Reddit Churn Signal Detector includes performance characterization for analysis throughput and resource usage across different configurations.
-
-These benchmarks are designed to validate the system's ability to handle varying discussion volumes and LLM processing loads.
-
-### Benchmark Coverage
-- **End-to-end analysis latency** (data fetching + LLM processing + scoring)
-- **LLM processing vs total time decomposition**
-- **Discussion volume scaling** (10, 50, 100, 500 discussions)
-- **Comment depth impact** on analysis quality and time
-- **Memory usage patterns** during large-scale analysis
-
-### Benchmark Artifacts
-- **Raw results:** `benchmarks/results/raw/` 
-- **Aggregated tables:** `benchmarks/results/tables/` 
-- **Benchmark scripts:** `benchmarks/benchmark_driver` 
-- **Methodology and discussion:** `PERFORMANCE.md` 
-
-All results are reported as **mean ± sample standard deviation over three runs**.
-
-> LLM processing time dominates the analysis pipeline and depends on Groq API response times and current load.
 
 ---
 
@@ -197,12 +161,6 @@ reddit-churn-sig/
 ├── data/
 │   └── raw/                       # Raw Reddit data storage
 │
-├── benchmarks/
-│   ├── configs/
-│   ├── scripts/
-│   ├── results/
-│   └── README.md
-│
 ├── docs/
 │   ├── architecture.png           # System architecture diagram
 │   └── analysis_examples.png       # Sample analysis outputs
@@ -244,32 +202,8 @@ The web interface provides:
 ```bash
 # Run with default configuration
 python main.py
-
-# Run with custom subreddit
-python main.py --subreddit spotify
-
-# Run with verbose logging
-python main.py --verbose
-
-# Dry run to test configuration
-python main.py --dry-run
 ```
 
-### Key CLI Parameters
-
-| Parameter | Description |
-|-----------|-------------|
-| `--subreddit` | Override default subreddit for analysis |
-| `--verbose` | Enable detailed logging output |
-| `--dry-run` | Test configuration without running analysis |
-| `--config` | Path to custom configuration file |
-
-*Use `--help` or `-h` with CLI to see the complete list of available options and their current default values.*
-
-#### Example 
-`python main.py --help`
-
----
 ## Configuration
 
 Reddit Churn Signal Detector uses `utils/config/reddit.yaml` for runtime configuration. Modify these settings to tune analysis behavior and data collection parameters.
